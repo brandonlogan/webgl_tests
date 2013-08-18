@@ -1,0 +1,25 @@
+<head>
+    <script type="text/javascript" src="js/vendor/gl-matrix-min.js"></script>
+    <script id="shader-fs" type="x-shader/x-fragment">
+        void main(void) {
+            gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+        }
+    </script>
+
+    <script id="shader-vs" type="x-shader/x-vertex">
+        attribute vec3 aVertexPosition;
+
+        uniform mat4 uModelMatrix;
+        uniform mat4 uViewMatrix;
+        uniform mat4 uProjMatrix;
+
+        void main(void) {
+            gl_Position = (uProjMatrix * uModelMatrix * uViewMatrix) * vec4(aVertexPosition, 1.0);
+        }
+    </script>
+    <script type="text/javascript" src="js/cube.js"></script>
+    <script type="text/javascript" src="js/main.js"></script>
+</head>
+<body onload="webGLStart();">
+    <canvas id="gl_canvas" style="border: none;" width="640" height="480"></canvas>
+</body>
