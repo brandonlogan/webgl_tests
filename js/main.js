@@ -1,6 +1,6 @@
 function webGLStart() {
     var canvas = document.getElementById("gl_canvas");
-
+    loadPly("");
     initWebGL(canvas);      // Initialize the GL context
 
     // Only continue if WebGL is available and working
@@ -14,13 +14,12 @@ function webGLStart() {
         initShaders();
         initBuffers();
 
-        setInterval(drawScene, 15);
+        setInterval(drawScene, 10);
     }
 }
 
+var gl = null;
 function initWebGL(canvas){
-    // Initialize the global variable gl to null.
-    gl = null;
 
     try {
         // Try to grab the standard context. If it fails, fallback to experimental.
@@ -56,6 +55,8 @@ function initShaders() {
 
     vertexPositionAttribute = gl.getAttribLocation(shaderProgram, "aVertexPosition");
     gl.enableVertexAttribArray(vertexPositionAttribute);
+    vertexColorAttribute = gl.getAttribLocation(shaderProgram, "aVertexColor");
+    gl.enableVertexAttribArray(vertexColorAttribute);
 }
 
 function getShader(gl, id) {
@@ -100,42 +101,26 @@ function getShader(gl, id) {
 }
 
 function initBuffers() {
-    squareVerticesBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, squareVerticesBuffer);
-
-    var vertices = [
-        1.0,  1.0,  0.0,
-        -1.0, 1.0,  0.0,
-        1.0,  -1.0, 0.0,
-        -1.0, -1.0, 0.0
-    ];
-
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+    var modelUniform = gl.getUniformLocation(shaderProgram, "uModelMatrix");
+    suzanne = new Suzanne(modelUniform, vertexPositionAttribute, vertexColorAttribute);
 }
 
 function drawScene() {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    projectionMatrix = mat4.create();
-    projectionMatrix = mat4.perspective(projectionMatrix,45, 640.0/480.0, 0.1, 100.0);
+    var projectionMatrix = mat4.create(mat4.prototype);
+    projectionMatrix = mat4.perspective(projectionMatrix, 45, 640.0/480.0, 0.1, 100.0);
+    suzanne.rotate(0, 0, 0);
+    var viewMatrix = mat4.create(mat4.prototype);
+    mat4.translate(viewMatrix, viewMatrix, [-0.0, 0.0, -4.0]);
 
-    viewMatrix = mat4.create();
-    mat4.translate(viewMatrix, viewMatrix, [-0.0, 0.0, -6.0]);
-
-    modelMatrix = mat4.create();
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, squareVerticesBuffer);
-    gl.vertexAttribPointer(vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
-    setMatrixUniforms();
-    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    setMatrixUniforms(projectionMatrix, viewMatrix);
+    suzanne.display()
 }
 
-function setMatrixUniforms() {
+function setMatrixUniforms(projectionMatrix, viewMatrix) {
     var pUniform = gl.getUniformLocation(shaderProgram, "uProjMatrix");
     gl.uniformMatrix4fv(pUniform, false, projectionMatrix);
-
-    var modelUniform = gl.getUniformLocation(shaderProgram, "uModelMatrix");
-    gl.uniformMatrix4fv(modelUniform, false, modelMatrix);
 
     var viewUniform = gl.getUniformLocation(shaderProgram, "uViewMatrix");
     gl.uniformMatrix4fv(viewUniform, false, viewMatrix);

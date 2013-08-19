@@ -1,23 +1,33 @@
 <head>
     <script type="text/javascript" src="js/vendor/gl-matrix-min.js"></script>
     <script id="shader-fs" type="x-shader/x-fragment">
+        precision mediump float;
+
+        varying vec4 vColor;
+
         void main(void) {
-            gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+            gl_FragColor = vColor;
         }
     </script>
 
     <script id="shader-vs" type="x-shader/x-vertex">
         attribute vec3 aVertexPosition;
+        attribute vec4 aVertexColor;
 
         uniform mat4 uModelMatrix;
         uniform mat4 uViewMatrix;
         uniform mat4 uProjMatrix;
 
+        varying vec4 vColor;
+
         void main(void) {
             gl_Position = (uProjMatrix * uModelMatrix * uViewMatrix) * vec4(aVertexPosition, 1.0);
+            vColor = aVertexColor;
         }
     </script>
+    <script type="text/javascript" src="js/ply_loader.js"></script>
     <script type="text/javascript" src="js/cube.js"></script>
+    <script type="text/javascript" src="js/suzanne.js"></script>
     <script type="text/javascript" src="js/main.js"></script>
 </head>
 <body onload="webGLStart();">

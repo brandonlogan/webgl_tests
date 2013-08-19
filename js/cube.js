@@ -1,6 +1,39 @@
-function cube(uModelMatrixId){
+function Model(uModelMatrixId, vertexPositionAttrib, vertexColorAttrib){
+    this.vertices = [];
+    this.colors = [];
     this.uModelMatrixId = uModelMatrixId;
-    this.modelMatrix = mat4.create();
+    this.vertexPositionAttribute = vertexPositionAttrib;
+    this.vertexColorAttribute = vertexColorAttrib;
+    this.modelMatrix = mat4.create(mat4.prototype);
+
+    this.initBuffers = function() {
+        this.vertBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.vertBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.vertices), gl.STATIC_DRAW);
+
+        this.colorBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.colorBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.colors), gl.STATIC_DRAW);
+    }
+}
+
+Model.prototype.display = function() {
+    gl.uniformMatrix4fv(this.uModelMatrixId, false, this.modelMatrix);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.vertBuffer);
+    gl.vertexAttribPointer(this.vertexPositionAttribute, 4, gl.FLOAT, false, 0, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.colorBuffer)
+    gl.vertexAttribPointer(this.vertexColorAttribute, 3, gl.FLOAT, false, 0, 0);
+    gl.drawArrays(gl.TRIANGLES, 0, this.vertices.length / 4);
+}
+
+Model.prototype.rotate = function(x, y, z) {
+    mat4.rotate(this.modelMatrix, this.modelMatrix, .01, [0, 1, 0]);
+}
+
+function Cube(uModelMatrixId, vertexPositionAttrib, vertexColorAttrib){
+    Model.call(this, uModelMatrixId, vertexPositionAttrib, vertexColorAttrib);
+
     this.vertices =
         [-0.5, -0.5, -0.5, 1.0,
          -0.5, -0.5, 0.5, 1.0,
@@ -76,28 +109,9 @@ function cube(uModelMatrixId){
         0.673, 0.211, 0.457,
         0.820, 0.883, 0.371,
         0.982, 0.099, 0.879];
-
-    this.vertBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, vertBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.vertices), gl.STATIC_DRAW);
-
-    this.colorBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.colors), gl.STATIC_DRAW);
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, 0);
+    mat4.translate(this.modelMatrix, this.modelMatrix, [3.0, 0.0, 0.0]);
+    this.initBuffers();
 }
 
-cube.prototype.display = function() {
-    gl.uniformMatrix4fv(this.uModelMatrixId, false, this.modelMatrix);
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.vertBuffer);
-    gl.vertexAttribPointer(0, 4, gl.GL_FLOAT, false, 0, null);
-    gl.enableVertexAttribArray(0);
-    gl.bindBuffer(GL.GL_ARRAY_BUFFER, this.colorBuffer)
-    gl.enableVertexAttribArray(1)
-    gl.vertexAttribPointer(1, 3, gl.GL_FLOAT, false, 0, null);
-    gl.drawArrays(gl.GL_TRIANGLES, 0, this.vertices.length / 4);
-    gl.disableVertexAttribArray(1);
-    gl.disableVertexAttribArray(0);
-}
+Cube.prototype = Object.create(Model.prototype);
+Cube.prototype.constructor = Cube;
